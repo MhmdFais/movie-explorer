@@ -16,7 +16,20 @@ export function ColorModeProvider({ children }) {
       return next;
     });
 
-  const theme = useMemo(() => createTheme({ palette: { mode } }), [mode]);
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          primary: { main: "#5c9f9b" },
+          ...(mode === "dark" && {
+            background: { default: "#0b0b0f", paper: "#16161d" },
+          }),
+        },
+        shape: { borderRadius: 12 },
+      }),
+    [mode],
+  );
 
   return (
     <ColorModeContext.Provider value={{ mode, toggle }}>
