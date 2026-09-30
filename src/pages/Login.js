@@ -48,9 +48,6 @@ export default function Login() {
         <Button type="submit" variant="contained">
           Log in
         </Button>
-        <Typography variant="caption" color="text.secondary">
-          Demo login: admin / movie123
-        </Typography>
       </Paper>
     </Box>
   );
