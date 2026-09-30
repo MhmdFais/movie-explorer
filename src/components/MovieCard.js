@@ -14,7 +14,14 @@ import FavouriteButton from "../components/FavouriteButton";
 export default function MovieCard({ movie }) {
   const year = movie.release_date?.slice(0, 4) || "N/A";
   return (
-    <Card sx={{ position: "relative", height: "100%" }}>
+    <Card
+      sx={{
+        position: "relative",
+        height: "100%",
+        transition: "transform .2s, box-shadow .2s",
+        "&:hover": { transform: "translateY(-4px)", boxShadow: 6 },
+      }}
+    >
       <CardActionArea component={Link} to={`/movie/${movie.id}`}>
         <CardMedia
           component="img"
@@ -36,7 +43,7 @@ export default function MovieCard({ movie }) {
               sx={{ display: "flex", alignItems: "center" }}
             >
               <StarIcon sx={{ fontSize: 14, color: "gold", mr: 0.3 }} />
-              {movie.vote_average?.toFixed(1)}
+              {movie.vote_average > 0 ? movie.vote_average.toFixed(1) : "NR"}
             </Typography>
           </Box>
         </CardContent>
