@@ -2,7 +2,7 @@
 
 A movie discovery web app built with React and the TMDb API. Search for movies, browse what's trending, view details, and save your favorites.
 
-**Live demo:** https://movie-explorer-eosin-delta.vercel.app
+**Live demo:** https://movie-explorer-eosin-delta.vercel.app<br>
 **Demo login:** `admin` / `movie123`
 
 ## Features
