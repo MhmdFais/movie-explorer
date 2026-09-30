@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-
-import { getTrending, searchMovies, getErrorMessage } from "../api/tmdb";
+import {
+  getTrending,
+  searchMovies,
+  getGenres,
+  getErrorMessage,
+} from "../api/tmdb";
 
 const MovieContext = createContext();
 
@@ -34,7 +38,6 @@ const slim = (m) => ({
 
 export function MovieProvider({ children }) {
   const [trending, setTrending] = useState(empty);
-
   const [error, setError] = useState("");
 
   // Search state
@@ -50,6 +53,32 @@ export function MovieProvider({ children }) {
   const [favourites, setFavourites] = useState(() =>
     JSON.parse(localStorage.getItem(FAVS) || "[]"),
   );
+
+  // Genres and filters
+  const [genres, setGenres] = useState([]);
+  const [filters, setFilters] = useState({
+    genre: "",
+    year: "",
+    rating: 0,
+  });
+
+  // Load movie genres
+  useEffect(() => {
+    getGenres()
+      .then(setGenres)
+      .catch(() => {
+        // Filters just stay empty if this fails
+      });
+  }, []);
+
+  // Apply filters to a movie list
+  const applyFilters = (list) =>
+    list.filter(
+      (m) =>
+        (!filters.genre || m.genre_ids?.includes(Number(filters.genre))) &&
+        (!filters.year || m.release_date?.startsWith(filters.year)) &&
+        m.vote_average >= Number(filters.rating),
+    );
 
   // Persist favourites to localStorage
   useEffect(() => {
@@ -98,7 +127,6 @@ export function MovieProvider({ children }) {
 
   const runSearch = async (query, page = 1) => {
     const q = query.trim();
-
     const id = ++reqId.current;
 
     if (!q) {
@@ -113,7 +141,6 @@ export function MovieProvider({ children }) {
     }
 
     localStorage.setItem(LAST, q);
-
     setError("");
 
     setSearch((s) => ({
@@ -165,6 +192,7 @@ export function MovieProvider({ children }) {
     if (search.query) {
       runSearch(search.query);
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -181,6 +209,11 @@ export function MovieProvider({ children }) {
         favourites,
         isFavourite,
         toggleFavourite,
+
+        genres,
+        filters,
+        setFilters,
+        applyFilters,
 
         error,
         setError,
