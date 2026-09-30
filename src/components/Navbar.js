@@ -26,8 +26,8 @@ export default function Navbar() {
           🎬 Movie Explorer
         </Typography>
 
-        <Button component={Link} to="/favorites" color="inherit">
-          Favorites
+        <Button component={Link} to="/favourites" color="inherit">
+          Favourites
         </Button>
 
         <IconButton color="inherit" onClick={toggle} aria-label="toggle theme">
