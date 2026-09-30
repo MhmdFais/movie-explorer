@@ -1,26 +1,49 @@
-import { createContext, useContext, useState } from "react";
-import { getTrending, getErrorMessage } from "../api/tmdb";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
+
+import { getTrending, searchMovies, getErrorMessage } from "../api/tmdb";
 
 const MovieContext = createContext();
+
 export const useMovies = () => useContext(MovieContext);
 
-const empty = { items: [], page: 0, total: 1, loading: false };
+const empty = {
+  items: [],
+  page: 0,
+  total: 1,
+  loading: false,
+};
 
 // Merge two lists without duplicate ids
 export const mergeUnique = (a, b) => [
   ...new Map([...a, ...b].map((m) => [m.id, m])).values(),
 ];
 
+const LAST = "me_last_search";
+
 export function MovieProvider({ children }) {
   const [trending, setTrending] = useState(empty);
+
   const [error, setError] = useState("");
+
+  // Search state
+  const [search, setSearch] = useState({
+    ...empty,
+    query: localStorage.getItem(LAST) || "",
+  });
+
+  // Lets us ignore responses from outdated searches
+  const reqId = useRef(0);
 
   const loadTrending = async () => {
     if (trending.loading || trending.page >= trending.total) return;
+
     setTrending((s) => ({ ...s, loading: true }));
+
     setError("");
+
     try {
       const data = await getTrending(trending.page + 1);
+
       setTrending((s) => ({
         items: mergeUnique(s.items, data.results),
         page: data.page,
@@ -29,12 +52,92 @@ export function MovieProvider({ children }) {
       }));
     } catch (e) {
       setError(getErrorMessage(e));
-      setTrending((s) => ({ ...s, loading: false }));
+
+      setTrending((s) => ({
+        ...s,
+        loading: false,
+      }));
     }
   };
 
+  const runSearch = async (query, page = 1) => {
+    const q = query.trim();
+
+    const id = ++reqId.current;
+
+    if (!q) {
+      localStorage.removeItem(LAST);
+      setSearch({
+        ...empty,
+        query: "",
+      });
+      return;
+    }
+
+    localStorage.setItem(LAST, q);
+
+    setError("");
+
+    setSearch((s) => ({
+      ...(page === 1 ? empty : s),
+      query: q,
+      loading: true,
+    }));
+
+    try {
+      const data = await searchMovies(q, page);
+
+      // Ignore response if a newer search has started
+      if (id !== reqId.current) return;
+
+      setSearch((s) => ({
+        query: q,
+        items: page === 1 ? data.results : mergeUnique(s.items, data.results),
+        page: data.page,
+        total: data.total_pages,
+        loading: false,
+      }));
+    } catch (e) {
+      // Ignore errors from outdated searches
+      if (id !== reqId.current) return;
+
+      setError(getErrorMessage(e));
+
+      setSearch((s) => ({
+        ...s,
+        loading: false,
+      }));
+    }
+  };
+
+  const loadMoreSearch = () => {
+    if (search.loading || !search.query || search.page >= search.total) {
+      return;
+    }
+
+    runSearch(search.query, search.page + 1);
+  };
+
+  // Restore the last search on first load
+  useEffect(() => {
+    if (search.query) {
+      runSearch(search.query);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <MovieContext.Provider value={{ trending, loadTrending, error, setError }}>
+    <MovieContext.Provider
+      value={{
+        trending,
+        loadTrending,
+        search,
+        runSearch,
+        loadMoreSearch,
+        error,
+        setError,
+      }}
+    >
       {children}
     </MovieContext.Provider>
   );
