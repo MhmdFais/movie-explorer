@@ -3,7 +3,7 @@ import { Container } from "@mui/material";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import MovieDetails from "./pages/MovieDetails";
-import Favorites from "./pages/Favourites";
+import Favourites from "./pages/Favourites";
 
 export default function App() {
   return (
@@ -13,7 +13,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/movie/:id" element={<MovieDetails />} />
-          <Route path="/favourites" element={<Favorites />} />
+          <Route path="/favourites" element={<Favourites />} />
         </Routes>
       </Container>
     </>
