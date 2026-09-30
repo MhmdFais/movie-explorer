@@ -6,38 +6,50 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Dialog,
   Typography,
 } from "@mui/material";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import StarIcon from "@mui/icons-material/Star";
+
 import { getMovie, posterUrl, getErrorMessage } from "../api/tmdb";
+
 import FavouriteButton from "../components/FavouriteButton";
 
 export default function MovieDetails() {
   const { id } = useParams();
+
   const [movie, setMovie] = useState(null);
   const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     setMovie(null);
     setError("");
+
     getMovie(id)
       .then(setMovie)
       .catch((e) => setError(getErrorMessage(e)));
   }, [id]);
 
-  if (error) return <Alert severity="error">{error}</Alert>;
-  if (!movie)
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
+
+  if (!movie) {
     return (
       <Box textAlign="center" py={6}>
         <CircularProgress />
       </Box>
     );
+  }
 
   const year = movie.release_date?.slice(0, 4);
   const cast = movie.credits?.cast.slice(0, 8) ?? [];
   const videos = movie.videos?.results ?? [];
+
   const trailer =
     videos.find((v) => v.site === "YouTube" && v.type === "Trailer") ??
     videos.find((v) => v.site === "YouTube");
@@ -47,6 +59,7 @@ export default function MovieDetails() {
       <Button component={Link} to="/" startIcon={<ArrowBackIcon />}>
         Back
       </Button>
+
       <Box
         sx={{
           display: "flex",
@@ -65,10 +78,12 @@ export default function MovieDetails() {
             alignSelf: "flex-start",
           }}
         />
+
         <Box>
           <Typography variant="h4">
             {movie.title} {year && `(${year})`}
           </Typography>
+
           {movie.tagline && (
             <Typography color="text.secondary" fontStyle="italic">
               {movie.tagline}
@@ -85,37 +100,79 @@ export default function MovieDetails() {
             }}
           >
             <StarIcon sx={{ color: "gold" }} />
+
             <Typography>{movie.vote_average?.toFixed(1)} / 10</Typography>
+
             {movie.runtime > 0 && (
               <Typography color="text.secondary">
                 · {movie.runtime} min
               </Typography>
             )}
+
             {movie.genres.map((g) => (
               <Chip key={g.id} label={g.name} size="small" />
             ))}
           </Box>
 
           <Typography variant="h6">Overview</Typography>
+
           <Typography sx={{ mb: 2 }}>
             {movie.overview || "No overview available."}
           </Typography>
 
           <Typography variant="h6">Cast</Typography>
+
           <Typography sx={{ mb: 2 }}>
             {cast.map((c) => c.name).join(", ") || "Not available."}
           </Typography>
 
           {trailer && (
-            <Button
-              variant="contained"
-              startIcon={<PlayCircleIcon />}
-              href={`https://www.youtube.com/watch?v=${trailer.key}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Watch trailer
-            </Button>
+            <>
+              <Button
+                variant="contained"
+                startIcon={<PlayCircleIcon />}
+                onClick={() => setOpen(true)}
+              >
+                Watch trailer
+              </Button>
+
+              <Button
+                href={`https://www.youtube.com/watch?v=${trailer.key}`}
+                target="_blank"
+                rel="noreferrer"
+                sx={{ ml: 1 }}
+              >
+                Open on YouTube
+              </Button>
+
+              <Dialog
+                open={open}
+                onClose={() => setOpen(false)}
+                maxWidth="md"
+                fullWidth
+              >
+                <Box
+                  sx={{
+                    position: "relative",
+                    pt: "56.25%",
+                  }}
+                >
+                  <iframe
+                    title="Trailer"
+                    src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
+                    allow="autoplay; encrypted-media; fullscreen"
+                    allowFullScreen
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      border: 0,
+                    }}
+                  />
+                </Box>
+              </Dialog>
+            </>
           )}
 
           <FavouriteButton movie={movie} />
