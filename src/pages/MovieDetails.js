@@ -12,6 +12,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
 import StarIcon from "@mui/icons-material/Star";
 import { getMovie, posterUrl, getErrorMessage } from "../api/tmdb";
+import FavouriteButton from "../components/FavouriteButton";
 
 export default function MovieDetails() {
   const { id } = useParams();
@@ -116,6 +117,8 @@ export default function MovieDetails() {
               Watch trailer
             </Button>
           )}
+
+          <FavouriteButton movie={movie} />
         </Box>
       </Box>
     </>

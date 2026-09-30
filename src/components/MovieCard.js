@@ -9,6 +9,7 @@ import {
 import StarIcon from "@mui/icons-material/Star";
 import { Link } from "react-router-dom";
 import { posterUrl } from "../api/tmdb";
+import FavouriteButton from "../components/FavouriteButton";
 
 export default function MovieCard({ movie }) {
   const year = movie.release_date?.slice(0, 4) || "N/A";
@@ -40,6 +41,9 @@ export default function MovieCard({ movie }) {
           </Box>
         </CardContent>
       </CardActionArea>
+      <Box sx={{ position: "absolute", top: 4, right: 4 }}>
+        <FavouriteButton movie={movie} />
+      </Box>
     </Card>
   );
 }
